@@ -93,6 +93,17 @@ class MenuController extends BaseController
      */
 
     public function getMenuItems() {
+        $menuItems = MenuItem::whereNull('parent_id')->with('children')->get();
+
+        $menuItems = $menuItems->map(function ($menuItem) {
+            $children = $menuItem->children->flatMap(function ($child) {
+                return $child->children->toArray();
+            });
+            return [$menuItem->toArray(), $children->toArray()];
+        })->flatten(1)->values()->all();
+
+        return response()->json($menuItems);
+
         throw new \Exception('implement in coding task 3');
     }
 }

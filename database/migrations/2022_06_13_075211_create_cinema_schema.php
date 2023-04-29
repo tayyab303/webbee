@@ -36,7 +36,58 @@ class CreateCinemaSchema extends Migration
      */
     public function up()
     {
-        throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
+        Schema::create('movies', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->integer('duration');
+            $table->string('image')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('shows', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('movie_id');
+            $table->foreign('movie_id')->references('id')->on('movies');
+            $table->dateTime('show_time');
+            $table->time('show_duration');
+            $table->timestamps();
+        });
+
+        Schema::create('showrooms', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->integer('capacity');
+            $table->timestamps();
+        });
+
+        Schema::create('seat_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->decimal('premium_percentage', 5, 2);
+            $table->timestamps();
+        });
+
+        Schema::create('seats', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('showroom_id');
+            $table->foreign('showroom_id')->references('id')->on('showrooms');
+            $table->unsignedBigInteger('seat_type_id');
+            $table->foreign('seat_type_id')->references('id')->on('seat_types');
+            $table->string('seat_number');
+            $table->timestamps();
+        });
+
+        Schema::create('pricing', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('show_id');
+            $table->foreign('show_id')->references('id')->on('shows');
+            $table->unsignedBigInteger('seat_type_id');
+            $table->foreign('seat_type_id')->references('id')->on('seat_types');
+            $table->decimal('price', 8, 2);
+            $table->timestamps();
+        });
+        // throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
     }
 
     /**

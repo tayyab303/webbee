@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Event;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class EventsController extends BaseController
 {
@@ -101,7 +104,66 @@ class EventsController extends BaseController
      */
 
     public function getEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 1');
+        // $events = DB::table('events')
+        // ->leftJoin('workshops', 'events.id', '=', 'workshops.event_id')
+        // ->groupBy('events.id')
+        // ->select('events.id', 'events.name', 'events.created_at', 'events.updated_at',
+        //     DB::raw("json_group_array(
+        //         JSON_OBJECT(
+        //             'id', workshops.id,
+        //             'start', workshops.start,
+        //             'end', workshops.end,
+        //             'event_id', workshops.event_id,
+        //             'name', workshops.name,
+        //             'created_at', workshops.created_at,
+        //             'updated_at', workshops.updated_at
+        //         )
+        //     ) AS workshops")
+        // )
+        // ->get();
+
+        $events = Event::select('events.id', 'events.name', 'events.created_at', 'events.updated_at')
+        ->with('workshops')
+        ->whereHas('workshops', function ($query) {
+            $query->orderBy('start', 'asc');
+        })
+        ->get();
+        return response()->json($events);
+
+        /**I can also get this data using ORM and using Laravel Resource/Collections with relation ship but
+         * due limited time get using this raw query, To be honest i search from internet to get json format data
+         * from sqlite i'm using sqlite first time.
+         */
+
+       /**
+        * Comment After Unit Testing First thing your unit dir is missing
+        *  After Fixing Unit dir and running unit test its throw error as below commented
+        *  so i write the query in Eloquent by creating relation
+        *
+        */
+
+        //   ✓ future events
+        //     ⨯ menu
+
+        //     ---
+
+        //     • Tests\Feature\ExampleTest > events
+        //     Failed asserting that null is identical to 'Illuminate your knowledge of the laravel code base'.
+
+        //     at C:\Users\DELL\Desktop\laravel-test\tests\Feature\ExampleTest.php:31
+        //         27▕         $response = $this->get('/events');
+        //         28▕         $response->assertStatus(200)
+        //         29▕             ->assertJsonCount(3)
+        //         30▕             ->assertJsonPath('0.name', 'Laravel convention '.$datePast->year)
+        //     ➜  31▕             ->assertJsonPath('0.workshops.0.name', 'Illuminate your knowledge of the laravel code base')
+        //         32▕             ->assertJsonPath('1.name', 'Laravel convention '.$dateFuture->year)
+        //         33▕             ->assertJsonPath('1.workshops.0.name', 'The new Eloquent - load more with less')
+        //         34▕             ->assertJsonPath('1.workshops.1.name', 'AutoEx - handles exceptions 100% automatic')
+        //         35▕             ->assertJsonPath('2.name', 'React convention '.$dateFuture->year)
+
+        //     1   C:\Users\DELL\Desktop\laravel-test\vendor\phpunit\phpunit\phpunit:107
+        //         PHPUnit\TextUI\Command::main()
+
     }
 
 
@@ -179,6 +241,14 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+        $events = Event::select('events.id', 'events.name', 'events.created_at', 'events.updated_at')
+        ->with('workshops')
+        ->whereHas('workshops', function ($query) {
+            $query->where('start', '>', now());
+            $query->orderBy('start', 'asc');
+        })
+        ->get();
+        return response()->json($events);
+
     }
 }
